@@ -1,17 +1,43 @@
-# QuakeEnhancedQC
-A QuakeC base intended to be used for modding Quake Enhanced specificaly.
-It attempts to replicate most of the changes that were introduced in Quake Enhanced as well as fix some of the issues that old bases have with the new version.
+# QE Hunter
+Quake Enhanced Hunter
 
-* Originally based off on QuakeC 1.06 source (This is not GPL)
-* Meant to be used with FTEQCC compiler
-* All warnings have been fixed
-* Some utilities related to Quake Enhanced have been added
-* Quake Enhanced specific things like built-ins, flags, packets, etc.. have been added.
+This is a multiplayer mod where one player is the hunter and the other players are the survivors. The Hunter is mostly invisible and can walk around without being seen.
 
-## New Features / Utilities
+# Download
+* [QEThings MPMods](https://mpmods.qethings.xyz) - Automatic install
+* [Github Release](https://github.com/jpiolho/QEHunter/releases/latest) - Manual install
 
-### Multiplayer mod name
-Quake Enhanced doesn't officially support multiplayer mods, but unofficially it's possible to develop them. However, right now, the only way to show that a lobby is running a mod it's to change the map name.
-For this effect, the base contains a file: `maps.qc` which contains code that will automatically append the mod name to any of the official maps.
+# Information
 
-If you have any custom map and you want the mod name to apply, you need to register it with this file.
+## How to manually install
+1. Go to your 'Saved games' quake folder, NOT THE STEAM FOLDER. You can go to it by pressing Windows+R and typing: `%userprofile%\Saved Games\Nightdive Studios\Quake`
+2. If a folder called '`id1`' already exists, delete it.
+3. Extract zip into the 'Saved games' folder.
+4. Verify that `id1` and `mpmod` folder are now inside 'Saved games'.
+
+## How to run the mod
+**NOTE:** If you're using [QEThings MPMods](https://mpmods.qethings.xyz), follow the instructions for it instead.
+
+1. Open console and type `game mpmod`
+2. Start a multiplayer game. The mod will start automatically.
+
+## Server things
+
+### Mapcycler
+This mod features mapcycler config support. At the start of each map the following cfg will be executed: `mapcycler_qehunter.cfg`
+
+Whenever the game decides to changelevel, it will run the following alias `nextmap_<current map name>`.
+
+An example mapcycler would be:
+```
+alias "nextmap_dm4" "changelevel dm5"
+alias "nextmap_dm5" "changelevel dm6"
+alias "nextmap_dm6" "changelevel dm7"
+alias "nextmap_dm7" "changelevel dm8"
+alias "nextmap_dm8" "changelevel e1m2"
+alias "nextmap_e1m2" "changelevel dm2"
+alias "nextmap_dm2" "changelevel dm4"
+```
+
+## Credits
+JPiolho: Author
