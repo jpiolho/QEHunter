@@ -53,6 +53,7 @@ float(entity targ, entity inflictor) CanDamage =
 Killed
 ============
 */
+void(float leaveBody) respawn;
 void(entity targ, entity attacker) Killed =
 {
 	local entity oself;
@@ -91,6 +92,9 @@ void(entity targ, entity attacker) Killed =
 	monster_death_use();
 	self.th_die ();
 
+	if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+		Hunter_Killed(attacker);
+	
 	self = oself;
 };
 

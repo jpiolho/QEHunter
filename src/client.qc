@@ -361,12 +361,13 @@ void() trigger_changelevel =
 void() set_suicide_frame;
 
 // called by ClientKill and DeadThink
-void() respawn =
+void(float leaveBody) respawn =
 {
 	if (coop)
 	{
 		// make a copy of the dead body for appearances sake
-		CopyToBodyQue (self);
+		if(leaveBody)
+			CopyToBodyQue (self);
 		// get the spawn parms as they were at level start
 		setspawnparms (self);
 		// respawn
@@ -375,7 +376,8 @@ void() respawn =
 	else if (deathmatch)
 	{
 		// make a copy of the dead body for appearances sake
-		CopyToBodyQue (self);
+		if(leaveBody)
+			CopyToBodyQue (self);
 		// set default spawn parms
 		SetNewParms ();
 		// respawn
@@ -402,7 +404,7 @@ void() ClientKill =
 	set_suicide_frame ();
 	self.modelindex = modelindex_player;
 	self.frags = self.frags - 2;	// extra penalty
-	respawn ();
+	respawn (TRUE);
 };
 
 float(vector v) CheckSpawnPoint =
@@ -512,6 +514,8 @@ void() PutClientInServer =
 	self.effects = 0;
 	self.invincible_time = 0;
 
+	
+
 	DecodeLevelParms ();
 
 	W_SetCurrentAmmo ();
@@ -536,6 +540,8 @@ void() PutClientInServer =
 
 	setmodel (self, "progs/player.mdl");
 	modelindex_player = self.modelindex;
+
+	Hunter_PutClientInServer();
 
 	setsize (self, VEC_HULL_MIN, VEC_HULL_MAX);
 
@@ -724,6 +730,16 @@ void() PlayerDeathThink =
 	{
 		if (self.button2 || self.button1 || self.button0)
 			return;
+
+		if(self.cnt & HUNTER_FL_CANT_RESPAWN)
+			return;
+
+		if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+		{
+			respawn(TRUE);
+			return;
+		}
+
 		self.deadflag = DEAD_RESPAWNABLE;
 		return;
 	}
@@ -735,7 +751,7 @@ void() PlayerDeathThink =
 	self.button0 = 0;
 	self.button1 = 0;
 	self.button2 = 0;
-	respawn();
+	respawn(TRUE);
 };
 
 
@@ -779,7 +795,10 @@ void() PlayerJump =
 
 	self.button2 = 0;
 // player jumping sound
-	sound (self, CHAN_BODY, "player/plyrjmp8.wav", 1, ATTN_NORM);
+
+	if(self.hunterTeam != HUNTER_TEAM_HUNTER) {
+		sound (self, CHAN_BODY, "player/plyrjmp8.wav", 1, ATTN_NORM);
+	}
 	self.velocity_z = self.velocity_z + 270;
 };
 
@@ -924,6 +943,11 @@ void() PlayerPreThink =
 
 	makevectors (self.v_angle);		// is this still used
 
+	if(self.movetype == MOVETYPE_NOCLIP)
+		self.movetype = MOVETYPE_FLY;
+
+	Hunter_PlayerPreThink();
+
 	CheckRules ();
 	WaterMove ();
 
@@ -969,6 +993,7 @@ void() CheckPowerups =
 	if (self.health <= 0)
 		return;
 
+		/*
 // invisibility
 	if (self.invisible_finished)
 	{
@@ -1010,6 +1035,7 @@ void() CheckPowerups =
 	}
 	else
 		self.modelindex = modelindex_player;	// don't use eyes
+*/
 
 // invincibility
 	if (self.invincible_finished)
@@ -1128,10 +1154,14 @@ void() PlayerPostThink =
 	if (self.deadflag)
 		return;
 
-// do weapon stuff
+	if(self.movetype == MOVETYPE_FLY)
+		self.movetype = MOVETYPE_NOCLIP;
+
+		// do weapon stuff
 
 	W_WeaponFrame ();
 
+	
 // check to see if player landed and play landing sound
 	if ((self.jump_flag < -300) && (self.flags & FL_ONGROUND) && (self.health > 0))
 	{
@@ -1140,11 +1170,27 @@ void() PlayerPostThink =
 		else if (self.jump_flag < -650)
 		{
 			T_Damage (self, world, world, 5);
-			sound (self, CHAN_VOICE, "player/land2.wav", 1, ATTN_NORM);
+
+			if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+			{
+				sound (self, CHAN_BODY, HUNTER_SOUND_HUNTER_LAND, 1, ATTN_NORM);
+				sound (self, CHAN_VOICE, HUNTER_SOUND_HUNTER_PAIN, 1, ATTN_NORM);
+			}
+			else {
+				sound (self, CHAN_VOICE, "player/land2.wav", 1, ATTN_NORM);
+			}
+
 			self.deathtype = "falling";
 		}
-		else
-			sound (self, CHAN_VOICE, "player/land.wav", 1, ATTN_NORM);
+		else {
+			if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+			{
+				sound (self, CHAN_BODY, HUNTER_SOUND_HUNTER_LAND, 1, ATTN_NORM);
+			}
+			else {
+				sound (self, CHAN_VOICE, "player/land.wav", 1, ATTN_NORM);
+			}
+		}
 
 		self.jump_flag = 0;
 	}
@@ -1153,6 +1199,8 @@ void() PlayerPostThink =
 		self.jump_flag = self.velocity_z;
 
 	CheckPowerups ();
+
+	Hunter_PlayerPostThink();
 };
 
 
@@ -1167,6 +1215,8 @@ void() ClientConnect =
 {
 	bprint (self.netname);
 	bprint (" entered the game\n");
+
+	Hunter_AssignTeamToPlayer(self);
 
 // a client connecting during an intermission can cause problems
 	if (intermission_running)
@@ -1188,6 +1238,7 @@ void() ClientDisconnect =
 	// if the level end trigger has been activated, just return
 	// since they aren't *really* leaving
 
+
 	// let everyone else know
 	bprint (self.netname);
 	bprint (" left the game with ");
@@ -1195,6 +1246,7 @@ void() ClientDisconnect =
 	bprint (" frags\n");
 	sound (self, CHAN_BODY, "player/tornoff2.wav", 1, ATTN_NONE);
 	set_suicide_frame ();
+	Hunter_ClientDisconnect();
 };
 
 /*

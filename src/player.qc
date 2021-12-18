@@ -251,6 +251,12 @@ local float		rs;
 		return;
 	}
 
+	if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+	{
+		sound(self,CHAN_VOICE, HUNTER_SOUND_HUNTER_PAIN, 1, ATTN_NONE);
+		return;
+	}
+
 // water pain sounds
 	if (self.watertype == CONTENT_WATER && self.waterlevel == 3)
 	{
@@ -400,11 +406,25 @@ void() DeathSound =
 {
 local float		rs;
 
+
 	// water death sounds
 	if (self.waterlevel == 3)
 	{
 		DeathBubbles(20);
+		if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+		{
+			sound(self,CHAN_VOICE, HUNTER_SOUND_HUNTER_DEATH, 1, ATTN_NONE);
+			return;
+		}
+
 		sound (self, CHAN_VOICE, "player/h2odeath.wav", 1, ATTN_NONE);
+		return;
+	}
+
+
+	if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+	{
+		sound(self,CHAN_VOICE, HUNTER_SOUND_HUNTER_DEATH, 1, ATTN_NONE);
 		return;
 	}
 
@@ -541,6 +561,7 @@ void() PlayerDie =
 	self.solid = SOLID_NOT;
 	self.flags = self.flags - (self.flags & FL_ONGROUND);
 	self.movetype = MOVETYPE_TOSS;
+	self.waitmax = time + 60;
 	if (self.velocity_z < 10)
 		self.velocity_z = self.velocity_z + random()*300;
 
@@ -558,24 +579,22 @@ void() PlayerDie =
 	if (self.weapon == IT_AXE)
 	{
 		player_die_ax1 ();
-		return;
 	}
-
-	i = cvar("temp1");
-	if (!i)
+	else
+	{
 		i = 1 + floor(random()*6);
 
-	if (i == 1)
-		player_diea1();
-	else if (i == 2)
-		player_dieb1();
-	else if (i == 3)
-		player_diec1();
-	else if (i == 4)
-		player_died1();
-	else
-		player_diee1();
-
+		if (i == 1)
+			player_diea1();
+		else if (i == 2)
+			player_dieb1();
+		else if (i == 3)
+			player_diec1();
+		else if (i == 4)
+			player_died1();
+		else
+			player_diee1();
+	}
 };
 
 void() set_suicide_frame =

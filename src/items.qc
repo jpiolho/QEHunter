@@ -154,21 +154,26 @@ void() health_touch =
 	if (other.classname != "player")
 		return;
 
+	local float healing = self.healamount;
+
+	if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+		healing /= 2;
+
 	if (self.healtype == 2) // Megahealth?  Ignore max_health...
 	{
 		if (other.health >= 250)
 			return;
-		if (!T_Heal(other, self.healamount, 1))
+		if (!T_Heal(other, healing, 1))
 			return;
 	}
 	else
 	{
-		if (!T_Heal(other, self.healamount, 0))
+		if (!T_Heal(other, healing, 0))
 			return;
 	}
 
 	sprint(other, "You receive ");
-	s = ftos(self.healamount);
+	s = ftos(healing);
 	sprint(other, s);
 	sprint(other, " health\n");
 
@@ -263,6 +268,10 @@ void() armor_touch =
 
 	other.armortype = type;
 	other.armorvalue = value;
+
+	if(other.hunterTeam == HUNTER_TEAM_HUNTER)
+		other.armorvalue *= 0.5;
+
 	other.items = other.items - (other.items & (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) + bit;
 
 	self.solid = SOLID_NOT;
@@ -1172,6 +1181,10 @@ Player is invisible for 30 seconds
 */
 void() item_artifact_invisibility =
 {
+	// No such heresy in this mod
+	remove(self);
+
+	/*
 	self.touch = powerup_touch;
 
 	precache_model ("progs/invisibl.mdl");
@@ -1184,6 +1197,7 @@ void() item_artifact_invisibility =
 	self.items = IT_INVISIBILITY;
 	setsize (self, '-16 -16 -24', '16 16 32');
 	StartItem ();
+	*/
 };
 
 

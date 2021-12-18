@@ -5,6 +5,11 @@ subs.qc
 maps.qc
 fight.qc
 ai.qc
+
+hunter/defs.qc
+hunter/utils.qc
+hunter/game.qc
+
 combat.qc
 items.qc
 weapons.qc
@@ -17,6 +22,8 @@ buttons.qc
 triggers.qc
 plats.qc
 misc.qc
+
+
 
 ogre.qc
 demon.qc

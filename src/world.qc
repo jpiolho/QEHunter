@@ -182,14 +182,18 @@ void() worldspawn =
 	else
 		cvar_set ("sv_gravity", "800");
 
+	cvar_set("teamplay","1");
 
 // custom map title
 	self.message = GetMapName(self.message);
+	self.netname = "mod_hunter";
 
 // the area based ambient sounds MUST be the first precache_sounds
 
 // player precaches
 	W_Precache ();			// get weapon precaches
+
+	Hunter_OnPrecache();
 
 // sounds used from C physics code
 	precache_sound ("demon/dland2.wav");		// landing thud
@@ -343,6 +347,9 @@ void() worldspawn =
 
 void() StartFrame =
 {
+	if(framecount == 0)
+		Hunter_OnGameStart();
+
 	teamplay = cvar("teamplay");
 	skill = cvar("skill");
 	framecount = framecount + 1;
