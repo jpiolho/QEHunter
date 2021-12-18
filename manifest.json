@@ -1,0 +1,15 @@
+{
+    "manifestVersion": 1,
+    
+	"name": "QE Hunter",
+    "version": "1.0.0",
+	"author": "JPiolho",
+	"date": "18/12/2021",
+	"description": "This is a multiplayer mod where one player is the hunter and the other players are the survivors. The Hunter is mostly invisible and can walk around without being seen.\nThe survivor that killed the hunter becomes the hunter.",
+	"gamedir": "id1",
+	"screenshots": [
+    ],
+	
+	"download": "QEHunter_v1.0.0.zip",
+	"pak": "pak0.pak"
+}
