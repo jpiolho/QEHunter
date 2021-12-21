@@ -142,7 +142,7 @@ function Main
     
     #Compile for regular quake
     Write-Host "Compiling QuakeC..."
-    Compile-QuakeC
+    Compile-QuakeC @("-Fsubscope","-O2")
     
     Start-Pak
     
