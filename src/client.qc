@@ -404,7 +404,19 @@ void() ClientKill =
 	set_suicide_frame ();
 	self.modelindex = modelindex_player;
 	self.frags = self.frags - 2;	// extra penalty
-	respawn (TRUE);
+
+	self.health = 0;
+	self.takedamage = DAMAGE_NO;
+	self.touch = SUB_Null;
+
+	monster_death_use();
+	self.th_die ();
+
+	if(self.hunterTeam == HUNTER_TEAM_HUNTER)
+		Hunter_Killed(world);
+
+
+	//respawn (TRUE);
 };
 
 float(vector v) CheckSpawnPoint =

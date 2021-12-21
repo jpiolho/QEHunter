@@ -4,10 +4,20 @@ float modelindex_player;
 void(float corpse) respawn;
 
 
+void(entity player,float newTeam) Hunter_SetTeam =
+{
+    player.team = player.hunterTeam = newTeam;
+
+    // Send the player colors
+    stuffcmd(player,"color ");
+    stuffcmd(player,ftos(player.team-1));
+    stuffcmd(player,"\n");
+}
+
 void() Hunter_SwapTeams_Think =
 {
-    self.owner.hunterTeam = HUNTER_TEAM_SURVIVOR;
-    self.enemy.hunterTeam = HUNTER_TEAM_HUNTER;
+    Hunter_SetTeam(self.owner,HUNTER_TEAM_SURVIVOR);
+    Hunter_SetTeam(self.enemy,HUNTER_TEAM_HUNTER);
 
     ExecuteAs(respawn(FALSE),self.enemy);
 
@@ -16,29 +26,51 @@ void() Hunter_SwapTeams_Think =
     }
 }
 
+void() Hunter_ReassignHunter_Think =
+{
+    dprint("Reassigning hunter...\n");
+
+    local entity newHunter;
+    RandomPlayerWithCondition(newHunter,newHunter.hunterTeam != HUNTER_TEAM_HUNTER,10);
+
+    dprint("\"");
+    dprint(newHunter.netname);
+    dprint("\" is the new hunter\n");
+
+    Hunter_SetTeam(newHunter,HUNTER_TEAM_HUNTER);
+
+    ExecuteAs(respawn(FALSE),newHunter);
+
+    centerprint(newHunter,self.message);
+
+    //"You've been changed to hunter due to the previous player leaving the game\n"
+}
+
 void(entity attacker) Hunter_Killed =
 {
-    // Check if the killer is a survivor
-	if(attacker.classname == "player"
-		&& attacker.hunterTeam != HUNTER_TEAM_HUNTER)
-	{
-        
-        local entity p;
-        while((p = LoopPlayers(p)))
-        {
-            if(p == attacker || p == self)
-            continue;
-            
-            centerprint(p,"The hunter has been killed\n");
-        }
+    dprint("GAME: Hunter has died. Cause: ");
 
+    // Make the body visible
+    self.alpha = 0.8;
+
+    // Check if the killer is a survivor
+    if(attacker && attacker.classname == "player" && attacker.hunterTeam != HUNTER_TEAM_HUNTER) {
+        dprint("Killed by survivor '");
+        dprint(attacker.netname);
+        dprint("'\n");
+
+        // Do announcements
         centerprint(attacker,"You killed the hunter\n");
         centerprint(self,"You've been killed by a survivor\n");
-        
+
+        MACRO_LoopPlayersWithConditionAndExecute(loopPlayer != attacker && loopPlayer != self,{
+            centerprint(loopPlayer,"The hunter has been killed\n");
+        });
+
         bprint(attacker.netname);
         bprint(" killed the hunter!\n");
 
-		// Swap teams
+        // Swap teams
         local entity swap = ExecuteDelayed(Hunter_SwapTeams_Think,3.0);
         swap.owner = self;
         swap.enemy = attacker;
@@ -46,40 +78,31 @@ void(entity attacker) Hunter_Killed =
         // Mark both players as non-respawnable
         self.cnt |= HUNTER_FL_CANT_RESPAWN;
         attacker.cnt |= HUNTER_FL_CANT_RESPAWN;
-	}
-}
-
-void() Hunter_ReassignHunter_Think =
-{
-    dprint("Reassigning hunter...\n");
-
-    local entity p;
-    local float foundHunter = FALSE;
-
-    // Loop through all the players until we find a new hunter
-    do {
-        while((p = LoopPlayers(p)))
-        {
-            if(p.hunterTeam == HUNTER_TEAM_HUNTER)
-                continue;
-
-            if(random() < 0.05)
-            {
-                // Winner!
-                dprint("\"");
-                dprint(p.netname);
-                dprint("\" is the new hunter\n");
-
-                p.hunterTeam = HUNTER_TEAM_HUNTER;
-
-                ExecuteAs(respawn(FALSE),p);
-
-                centerprint(p,"You've been changed to hunter due to the previous player leaving the game\n");
-                break;
-            }
-        }
     }
-    while(!foundHunter);
+    else {
+        dprint("Other\n");
+
+        MACRO_LoopPlayersWithConditionAndExecute(loopPlayer != self,{
+            centerprint(loopPlayer,"The hunter has died\n");
+        });
+
+        bprint("The hunter has died!\n");
+
+        // Get the last player to hit the hunter
+        if(self.oldenemy)
+        {
+            // Swap teams
+            local entity swap = ExecuteDelayed(Hunter_SwapTeams_Think,3.0);
+            swap.owner = self;
+            swap.enemy = attacker;
+        }
+        else {
+            // The hunter died before anybody hurting them. Choose randomly
+            ExecuteDelayed(Hunter_ReassignHunter_Think,3.0);
+        }
+
+        self.cnt |= HUNTER_FL_CANT_RESPAWN;
+    }
 }
 
 void(entity target) Hunter_PrintSpawnMessage =
@@ -95,7 +118,9 @@ void() Hunter_ClientDisconnect =
 {
     if(self.hunterTeam == HUNTER_TEAM_HUNTER) {
         dprint("Hunter left the game\n");
-        ExecuteDelayed(Hunter_ReassignHunter_Think,5);
+
+        local entity reassign = ExecuteDelayed(Hunter_ReassignHunter_Think,5);
+        reassign.message = "You've been changed to hunter due to the previous player leaving the game\n";
     }
 }
 
@@ -146,6 +171,9 @@ void() Hunter_PutClientInServer =
     // Remove 'cant respawn' flag
     self.cnt -= self.cnt & HUNTER_FL_CANT_RESPAWN;
 
+    // Remove the last player hit
+    self.oldenemy = world;
+
     if(self.hunterTeam == HUNTER_TEAM_HUNTER) {
         self.modelindex = modelindex_eyes;
 
@@ -188,11 +216,11 @@ void(entity player) Hunter_AssignTeamToPlayer =
         // Assign the team
         if(numberHunters == 0)
         {
-            player.hunterTeam = HUNTER_TEAM_HUNTER;
+            Hunter_SetTeam(player,HUNTER_TEAM_HUNTER);
         }
         else
         {
-            player.hunterTeam = HUNTER_TEAM_SURVIVOR;
+            Hunter_SetTeam(player,HUNTER_TEAM_SURVIVOR);
         }
 
         // Set an impossible team so that the color is set in PlayerPreThink

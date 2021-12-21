@@ -94,7 +94,7 @@ void(entity targ, entity attacker) Killed =
 
 	if(self.hunterTeam == HUNTER_TEAM_HUNTER)
 		Hunter_Killed(attacker);
-	
+
 	self = oself;
 };
 
@@ -172,6 +172,11 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 	if ( (teamplay == 1) && ( (coop && targ.classname == "player" && attacker.classname == "player") || (targ.team > 0 && targ.team == attacker.team)) && targ != attacker )
 		return;
 
+
+	// Save the last player to score a hit
+	if(attacker != targ && targ.flags & FL_CLIENT && attacker.flags & FL_CLIENT)
+		targ.oldenemy = attacker;
+
 // do the damage
 	targ.health = targ.health - take;
 
@@ -200,6 +205,7 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 			}
 		}
 	}
+
 
 	if (self.th_pain)
 	{
