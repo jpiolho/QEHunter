@@ -31,7 +31,7 @@ void() Hunter_ReassignHunter_Think =
     dprint("Reassigning hunter...\n");
 
     local entity newHunter;
-    RandomPlayerWithCondition(newHunter,newHunter.hunterTeam != HUNTER_TEAM_HUNTER,10);
+    RandomPlayerWithCondition(newHunter,newHunter.hunterTeam != HUNTER_TEAM_HUNTER && newHunter != hunter_host,10);
 
     dprint("\"");
     dprint(newHunter.netname);
@@ -114,6 +114,8 @@ void(entity target) Hunter_PrintSpawnMessage =
     }
 }
 
+
+
 void() Hunter_ClientDisconnect =
 {
     if(self.hunterTeam == HUNTER_TEAM_HUNTER) {
@@ -168,6 +170,35 @@ void() Hunter_OnPrecache =
 
 void() Hunter_PutClientInServer =
 {
+    // Hide host
+    if(hunter_host && Hunter_GetServerOptions() & SERVERSETTINGS_HIDEHOST) {
+		ExecuteDelayed(Hunter_HideHost_Think,0.1).owner = self;
+	}
+
+    // Handle host mode
+    if(hunter_host == self)
+	{
+        // Set noclip
+		self.movetype = MOVETYPE_NOCLIP;
+		self.solid = SOLID_NOT;
+
+        // Set flags so bots and monsters don't target
+		self.flags |= FL_FLY | FL_NOTARGET | FL_GODMODE;
+		self.takedamage = DAMAGE_NO;
+
+        // Remove weapons
+		self.items = 0;
+		self.weapon = IT_AXE;
+		self.weaponmodel = string_null;
+
+        // Remove the player model entirely
+		setmodel (self, string_null);
+		self.modelindex = modelindex_player; // Still allow the player to move around
+
+        return;
+	}
+
+
     // Remove 'cant respawn' flag
     self.cnt -= self.cnt & HUNTER_FL_CANT_RESPAWN;
 
@@ -240,6 +271,7 @@ void() Hunter_PlayerPreThink =
         stuffcmd(self,ftos(self.team-1));
         stuffcmd(self,"\n");
     }
+
 
     if(!(self.cnt & HUNTER_FL_SEEN_STARTING_MESSAGE))
 	{

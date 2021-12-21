@@ -1,7 +1,14 @@
 .float hunterTeam;
 
+entity hunter_host;
+
 float hunter_status;
 
+// Server settings
+enum {
+    SERVERSETTINGS_HOSTMODE = 1,
+    SERVERSETTINGS_HIDEHOST = 2
+};
 
 float HUNTER_STATUS_ROUND_STARTING = 0;
 float HUNTER_STATUS_ROUND_IN_PROGRESS = 1;
@@ -10,7 +17,7 @@ float HUNTER_STATUS_ROUND_IN_PROGRESS = 1;
 float HUNTER_FL_SEEN_STARTING_MESSAGE = 1;
 float HUNTER_FL_CANT_RESPAWN = 2;
 
-float HUNTER_TEAM_NONE = 1;
+float HUNTER_TEAM_HOST = 1;
 float HUNTER_TEAM_HUNTER = 5;
 float HUNTER_TEAM_SURVIVOR = 12;
 

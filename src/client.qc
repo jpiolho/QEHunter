@@ -526,7 +526,6 @@ void() PutClientInServer =
 	self.effects = 0;
 	self.invincible_time = 0;
 
-	
 
 	DecodeLevelParms ();
 
@@ -955,8 +954,10 @@ void() PlayerPreThink =
 
 	makevectors (self.v_angle);		// is this still used
 
-	if(self.movetype == MOVETYPE_NOCLIP)
+
+	if(self.movetype == MOVETYPE_NOCLIP && self != hunter_host)
 		self.movetype = MOVETYPE_FLY;
+
 
 	Hunter_PlayerPreThink();
 
@@ -1166,15 +1167,14 @@ void() PlayerPostThink =
 	if (self.deadflag)
 		return;
 
-	if(self.movetype == MOVETYPE_FLY)
+
+	if(self.movetype == MOVETYPE_FLY && self != hunter_host)
 		self.movetype = MOVETYPE_NOCLIP;
 
-		// do weapon stuff
-
+	// do weapon stuff
 	W_WeaponFrame ();
 
-	
-// check to see if player landed and play landing sound
+	// check to see if player landed and play landing sound
 	if ((self.jump_flag < -300) && (self.flags & FL_ONGROUND) && (self.health > 0))
 	{
 		if (self.watertype == CONTENT_WATER)
@@ -1228,7 +1228,14 @@ void() ClientConnect =
 	bprint (self.netname);
 	bprint (" entered the game\n");
 
-	Hunter_AssignTeamToPlayer(self);
+	if(!hunter_host && Hunter_IsHostMode())
+	{
+		hunter_host = self;
+		self.hunterTeam = self.team = HUNTER_TEAM_HOST;
+	}
+	else {
+		Hunter_AssignTeamToPlayer(self);
+	}
 
 // a client connecting during an intermission can cause problems
 	if (intermission_running)

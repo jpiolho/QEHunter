@@ -8,6 +8,7 @@ ai.qc
 
 hunter/defs.qc
 hunter/utils.qc
+hunter/server.qc
 hunter/game.qc
 
 combat.qc

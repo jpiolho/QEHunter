@@ -874,6 +874,10 @@ void() W_Attack =
 {
 	local	float	r;
 
+	// Ignore attacks from the host
+	if(hunter_host == self)
+		return;
+
 	if (!W_CheckNoAmmo ())
 		return;
 
@@ -1055,6 +1059,9 @@ Go to the next weapon with ammo
 */
 void() CycleWeaponCommand =
 {
+	if(hunter_host == self)
+		return;
+
 	local	float	it, am;
 
 	it = self.items;
@@ -1129,6 +1136,9 @@ Go to the prev weapon with ammo
 */
 void() CycleWeaponReverseCommand =
 {
+	if(hunter_host == self)
+		return;
+
 	local	float	it, am;
 
 	it = self.items;
