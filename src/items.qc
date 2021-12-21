@@ -1084,6 +1084,10 @@ void() powerup_touch =
 	if (other.health <= 0)
 		return;
 
+	// Don't let hunters pick up invulnerability
+	if (other.hunterTeam == HUNTER_TEAM_HUNTER && self.classname == "item_artifact_invulnerability")
+		return;
+
 	sprint (other, "You got the ");
 	sprint (other, self.netname);
 	sprint (other,"\n");
