@@ -39,6 +39,9 @@ void() W_FireAxe =
 	local	vector	source;
 	local	vector	org;
 
+	if(self.team == HUNTER_TEAM_HUNTER)
+		self.invisible_time = math_max(time + 1.5,self.invisible_time);
+
 	makevectors (self.v_angle);
 	source = self.origin + '0 0 16';
 	traceline (source, source + v_forward*64, FALSE, self);
