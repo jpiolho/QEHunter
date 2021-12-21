@@ -23,6 +23,13 @@ This is a multiplayer mod where one player is the hunter and the other players a
 
 ## Server things
 
+### Server options
+To set server options, set the cvar `saved2`. To add multiple modes together, sum their values. Example: Mode 1 + Mode 2 = 3 (`saved2 3`).
+
+**Mode 1: Host mode**: You'll be placed in a host configuration, invisible and noclipping.
+
+**Mode 2: Hide host**: The host will not show up in the scoreboard
+
 ### Mapcycler
 This mod features mapcycler config support. At the start of each map the following cfg will be executed: `mapcycler_qehunter.cfg`
 
@@ -40,4 +47,5 @@ alias "nextmap_dm2" "changelevel dm4"
 ```
 
 ## Credits
-JPiolho: Author
+* JPiolho: Author
+* People @ Quake Enhanced Discord: Feedback, ideas and testing
