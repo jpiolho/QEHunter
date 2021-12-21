@@ -43,6 +43,13 @@ void() Hunter_ReassignHunter_Think =
 
     centerprint(newHunter,self.message);
 
+    // If there was a previous hunter
+    if(self.owner) {
+        Hunter_SetTeam(self.owner,HUNTER_TEAM_SURVIVOR);
+        self.owner.cnt -= self.owner.cnt & HUNTER_FL_CANT_RESPAWN;
+        ExecuteAs(respawn(FALSE),self.owner);
+    }
+
     //"You've been changed to hunter due to the previous player leaving the game\n"
 }
 
@@ -94,11 +101,11 @@ void(entity attacker) Hunter_Killed =
             // Swap teams
             local entity swap = ExecuteDelayed(Hunter_SwapTeams_Think,3.0);
             swap.owner = self;
-            swap.enemy = attacker;
+            swap.enemy = self.oldenemy;
         }
         else {
             // The hunter died before anybody hurting them. Choose randomly
-            ExecuteDelayed(Hunter_ReassignHunter_Think,3.0);
+            ExecuteDelayed(Hunter_ReassignHunter_Think,3.0).owner = self;
         }
 
         self.cnt |= HUNTER_FL_CANT_RESPAWN;
