@@ -258,7 +258,7 @@ void() IntermissionThink =
 	if (time < intermission_exittime)
 		return;
 
-	if (!self.button0 && !self.button1 && !self.button2)
+	if (!hunter_host && !self.button0 && !self.button1 && !self.button2)
 		return;
 
 	ExitIntermission ();
